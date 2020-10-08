@@ -18,7 +18,9 @@ public:
 };
 
 long foo() {
+        stack_guard before;
         user_record u;
+        stack_guard after;
         strcpy(u.userID,"none");
         strcpy(u.userPIN,"1234");
         strcpy(u.GUARD,"SAFENOW");

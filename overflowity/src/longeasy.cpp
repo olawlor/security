@@ -1,6 +1,5 @@
-/* It's very handy to smash variables that index into arrays.
-   Once you overwrite the index, you can jump anywhere relative to the 
-   start of the array--even backwards! */
+/* You can long ints (64 bits, 8 bytes) here 
+   in hex with 0x1234abcd, or decimal. */
 #include "support/main.h"
 
 class user_record {
