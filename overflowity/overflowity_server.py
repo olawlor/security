@@ -28,11 +28,12 @@ def get_problem(problem):
 
         page += Path("ui/template2.html").read_text('utf-8')
 
-        page+=user
         page+='<p>Attempting problem '
         page+=problem
+
         src=Path("src/"+problem+".cpp").read_text('utf-8')
         page+='<p>Problem source code: <pre>'+format(escape(src))+'</pre>'
+
         page+='<p>Running with input data: <pre>'+format(escape(input))+'</pre>'
         page+='<p>Running '+problem+' now:'
         

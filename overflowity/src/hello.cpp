@@ -1,3 +1,4 @@
+/* Simple hello world program--give it any input and it's happy! */
 #include "support/main.h"
 
 long foo() {
