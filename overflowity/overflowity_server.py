@@ -52,6 +52,7 @@ def get_problem(problem):
            Path("users/"+user+"/"+problem).write_text("OK "+input)
            commentary.write(user+" just solved "+problem+"!\n")
            commentary.flush()
+           page+='<script>document.body.style.backgroundColor="#88ffff";</script>'
 
         page += Path("ui/template99.html").read_text('utf-8')
 
