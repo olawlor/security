@@ -1,0 +1,22 @@
+<HTML>
+<head>
+<script>
+function pageReady() {
+   if (localStorage.user) {
+     document.getElementById("userID").value=localStorage.user;
+   }
+}
+function saveUser() {
+   localStorage.user=document.getElementById("userID").value;
+}
+
+</script>
+
+</head>
+<body onload="pageReady()">
+<H1>Overflowity</H1>
+Back up to <a href="index">index</a>.
+
+<form action="" onsubmit="saveUser()">
+<p>
+Your name for grading:<input type="text" id="userID" name="user" value="
