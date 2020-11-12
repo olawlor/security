@@ -23,6 +23,17 @@ app.use(express.static('static/'));
 var accounts={};
 
 
+// Add a "federal reserve" account to provide emergency liquidity
+var fed={
+        "pubkey":"0a5a4fc717d1b2348ea3a2e5236ff3fbf751693a3c3d053c3b2da104f5aeea11",
+        "email":"reserve@fed.gov",
+        "account":0,
+        "id":"Federal Reserve",
+        "balance":1000000000000.0
+};
+accounts[fed.pubkey]=fed;
+
+
 app.get('/', function(req, res) {
   res.send('This is not for you.');
 });
@@ -42,7 +53,7 @@ app.all('/roradora/register', function(req, res) {
     "email":email,
     "account":account,
     "id":email+"/"+account,
-    "balance":1000.0 //< universal basic income!
+    "balance":100.0 //< universal basic income!
   };
   
   return res.send('Welcome '+email);
