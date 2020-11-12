@@ -1,0 +1,219 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Roradora  ロラドラ: The JavaScript-only Cryptocurrency</title>
+
+<style>
+table {
+    border: 1px solid black;
+    margin: 5px;
+}
+</style>
+
+<script src="axlsign.js"></script>
+<script src="roradora.js"></script>
+
+<script>
+// Browser-local crypto state
+window.roradora={
+    keypair:{}, // raw byte arrays with public and private keys 
+    pubkey:"???", // human-readable version of public key
+    pubhex:"???", // machine-readable hex version of public key
+    
+    // Create a public/private key pair for this email and password:
+    makeKeyPair:function(email,account,password) {
+        var hash=rora.hash64b(password+":"+email+":"+account);
+        // PBKDF-style key stretching?
+        //var iterations=1000;
+        var final=rora.hash32b(rora.base64FromBytes(hash)+":RORADORA");
+        roradora.keypair=axlsign.generateKeyPair(final);
+        roradora.pubkey=rora.hexFromBytes(roradora.keypair.public);
+        roradora.pubhex=rora.hexFromBytes(roradora.keypair.public);
+    },
+    
+    // Return a signature for a money transfer from current account to this one
+    signXfer: function(target,amount) 
+    {
+        // Build message buffer describing the transfer
+        var msg=new Uint8Array(64);
+        msg.set(target,0);
+        msg.set(amount,32);
+        return axlsign.sign(roradora.keypair.private,msg);
+    },
+    
+    // Server communication code all funnels through here:
+    //  Request is the base URL request, like "balance" or "xfer"
+    //  Params are the hex keyword=value parameters.
+    //  Text data back from the server is passed to callback
+    network: function(request,params,callback)
+    {
+        var url="/roradora/"+request+"?"+params;
+        console.log("Sending network: "+url);
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                // Typical action to be performed when the document is ready:
+                var response = xhr.responseText;
+                console.log("  Back from network: "+response);
+                callback(response);
+            }
+        };
+        xhr.open("GET", url, true);
+        xhr.send();
+    }
+    
+};
+
+
+// HTML User interface code
+
+// Register a public/private key
+function registerUI()
+{
+    var email=document.getElementById("email").value;
+    var account=document.getElementById("account").value;
+    var pass=document.getElementById("pass").value;
+    
+    roradora.makeKeyPair(email,account,pass);
+    
+    var pubkey=document.getElementById("pubkey");
+    pubkey.innerHTML=roradora.pubkey;
+    
+    roradora.network("register",
+            "email="+email+
+            "&account="+account+
+            "&pubkey="+roradora.pubhex,
+        function(result)
+        {
+            document.getElementById("registerResult").innerHTML=result;
+            balanceUI(); // request account balance
+        }
+    );
+    
+}
+
+// Request our current account balance from the server
+function balanceUI() 
+{
+    var balance=document.getElementById("balance");
+    roradora.network("balance",
+            "pubkey="+roradora.pubhex,
+        function(newbalance)
+        {
+            balance.innerHTML=newbalance;
+        }
+    );
+}
+
+// Send money from our account to another account
+function xferUI() 
+{
+    // Convert target account to a byte array
+    var target=document.getElementById("xferTo").value;
+    var targetBytes=rora.bytesFromHex(target);
+    if (!targetBytes || targetBytes.length!=32) { alert("Invalid target account '"+target+"'"); return; }
+    
+    // Convert amount to a byte array
+    var amount=parseFloat(document.getElementById("xferAmt").value);
+    var balance=parseFloat(document.getElementById("balance").innerHTML);
+    if (amount>balance) { alert("Cannot send more than you have: balance="+balance); return; }
+    if (amount<0) { alert("Cannot send a negative amount!"); return; }
+    var amountTot=amount*100.0; // convert to pennies
+    var amountHex=amountTot.toString(16).padStart(64,'0'); // hex, leading zeros
+    var amountBytes=rora.bytesFromHex(amountHex);
+    if (!amountBytes || amountBytes.length!=32) { alert("Invalid amount "+amountHex); return; }
+    
+    // Use our private key to sign outgoing transfer request
+    var signature=roradora.signXfer(targetBytes,amountBytes);
+    
+    roradora.network("xfer",
+            "pubkey="+roradora.pubhex+
+            "&to="+rora.hexFromBytes(targetBytes)+
+            "&amount="+rora.hexFromBytes(amountBytes)+
+            "&signature="+rora.hexFromBytes(signature),
+        function(result)
+        {
+            document.getElementById("xferResult").innerHTML=result;
+            balanceUI(); // request new account balance
+        }
+    );
+}
+
+</script>
+
+
+</head>
+<body>
+<h1>Roradora  ロラドラ</h1>
+
+
+<table>
+<tr>
+  <td>Registration</td>
+</tr>
+<tr>
+  <td align="right">Email address: </td>
+  <td><input type="text" id="email" name="email" value="foo@bar.com" /></td>
+</tr>
+<tr>
+  <td align="right">Account name: </td>
+  <td><input type="text" id="account" name="account" value="0" /></td>
+</tr>
+<tr>
+  <td align="right">Transaction password: </td>
+  <td><input type="password" id="pass" name="pass" value="passe" /></td>
+</tr>
+<tr colspan=2>
+    <td><input type="submit" value="Register Keys" onclick="registerUI()" /></td>
+</tr>
+<tr>
+    <td align="right">Registration result:</td>
+    <td><p id="registerResult"></td>
+</tr>
+<tr>
+    <td align="right">Public key:</td>
+    <td><p id="pubkey"></td>
+</tr>
+</table>
+
+
+<table>
+<tr>
+  <td>Balance check</td>
+</tr>
+<tr colspan=2>
+    <td><input type="submit" value="Request Account Balance" onclick="balanceUI()" /></td>
+</tr>
+<tr>
+    <td align="right">Account balance:</td>
+    <td><text id="balance"></text>£</td>
+</tr>
+</table>
+
+
+<table>
+<tr>
+  <td>Money transfer</td>
+</tr>
+<tr>
+  <td align="right">Transfer to public key: </td>
+  <td><input type="text" id="xferTo" name="xferTo" value="" /></td>
+</tr>
+<tr>
+  <td align="right">Transfer amount: </td>
+  <td><input type="text" id="xferAmt" name="xferAmt" value="100" /></td>
+</tr>
+<tr colspan=2>
+<td><input type="submit" value="Transfer Money" onclick="xferUI()" /></td>
+</tr>
+<tr>
+  <td align="right">Transfer result: </td>
+  <td><p id="xferResult"></td>
+</tr>
+</table>
+
+
+
+</body>
+</html>
+
