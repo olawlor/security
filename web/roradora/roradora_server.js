@@ -1,8 +1,9 @@
 /*
 Node JS cryptocurrency server.
-
-
 */
+var axlsign=require('./static/axlsign.js');
+var roradora=require('./static/roradora.js');
+
 var express = require('express');
 
 var escape = require('escape-html');
@@ -40,6 +41,7 @@ app.all('/roradora/register', function(req, res) {
     "pubkey":pubkey,
     "email":email,
     "account":account,
+    "id":email+"/"+account,
     "balance":1000.0 //< universal basic income!
   };
   
@@ -69,9 +71,16 @@ app.all('/roradora/xfer', function(req, res) {
   if (!from) return res.send('Unknown source pubkey');
   if (!to) return res.send('Unknown target pubkey');
   
-  // FIXME: do sanity check, crypto check
+  // Check cryptographic signature
+  var pubkeyBytes=roradora.bytesFromHex(pubkey);
+  var signatureBytes=roradora.bytesFromHex(signature);
+  console.log("Xfer: "+pubkeyBytes.length+" key, "+signatureBytes.length+" sig");
+  var signedMessage=axlsign.openMessage(pubkeyBytes,signatureBytes);
+  if (!signedMessage) return res.send("Invalid crypto in signature!");
   
+  // Do the transfer
   var amountFloat=parseInt(amount,16)/100.0; // starts as hex pennies
+  console.log("xfer "+amountFloat+" from "+from.id+" to "+to.id);
   from.balance -=amountFloat;
   to.balance +=amountFloat;
   
@@ -82,7 +91,7 @@ app.all('/roradora/dump', function(req, res) {
   var ret='<meta http-equiv="refresh" content="10">Account balances: <ul>';
   for (var pubkey in accounts) {
     var a=accounts[pubkey];
-    ret+="<li>"+a.email+"/"+a.account+": "+a.balance+"£\n";
+    ret+="<li>"+a.id+": "+a.balance+"£\n";
   }
   return res.send(ret);
 });

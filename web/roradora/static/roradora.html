@@ -14,21 +14,21 @@ table {
 <script src="roradora.js"></script>
 
 <script>
-// Browser-local crypto state
-window.roradora={
+// Browser-local crypto state "rorahtml":
+window.rorahtml={
     keypair:{}, // raw byte arrays with public and private keys 
     pubkey:"???", // human-readable version of public key
     pubhex:"???", // machine-readable hex version of public key
     
     // Create a public/private key pair for this email and password:
     makeKeyPair:function(email,account,password) {
-        var hash=rora.hash64b(password+":"+email+":"+account);
+        var hash=roradora.hash64b(password+":"+email+":"+account);
         // PBKDF-style key stretching?
         //var iterations=1000;
-        var final=rora.hash32b(rora.base64FromBytes(hash)+":RORADORA");
-        roradora.keypair=axlsign.generateKeyPair(final);
-        roradora.pubkey=rora.hexFromBytes(roradora.keypair.public);
-        roradora.pubhex=rora.hexFromBytes(roradora.keypair.public);
+        var final=roradora.hash32b(roradora.base64FromBytes(hash)+":RORADORA");
+        rorahtml.keypair=axlsign.generateKeyPair(final);
+        rorahtml.pubkey=roradora.hexFromBytes(rorahtml.keypair.public);
+        rorahtml.pubhex=roradora.hexFromBytes(rorahtml.keypair.public);
     },
     
     // Return a signature for a money transfer from current account to this one
@@ -38,7 +38,7 @@ window.roradora={
         var msg=new Uint8Array(64);
         msg.set(target,0);
         msg.set(amount,32);
-        return axlsign.sign(roradora.keypair.private,msg);
+        return axlsign.signMessage(rorahtml.keypair.private,msg);
     },
     
     // Server communication code all funnels through here:
@@ -74,15 +74,15 @@ function registerUI()
     var account=document.getElementById("account").value;
     var pass=document.getElementById("pass").value;
     
-    roradora.makeKeyPair(email,account,pass);
+    rorahtml.makeKeyPair(email,account,pass);
     
     var pubkey=document.getElementById("pubkey");
-    pubkey.innerHTML=roradora.pubkey;
+    pubkey.innerHTML=rorahtml.pubkey;
     
-    roradora.network("register",
+    rorahtml.network("register",
             "email="+email+
             "&account="+account+
-            "&pubkey="+roradora.pubhex,
+            "&pubkey="+rorahtml.pubhex,
         function(result)
         {
             document.getElementById("registerResult").innerHTML=result;
@@ -96,8 +96,8 @@ function registerUI()
 function balanceUI() 
 {
     var balance=document.getElementById("balance");
-    roradora.network("balance",
-            "pubkey="+roradora.pubhex,
+    rorahtml.network("balance",
+            "pubkey="+rorahtml.pubhex,
         function(newbalance)
         {
             balance.innerHTML=newbalance;
@@ -110,7 +110,7 @@ function xferUI()
 {
     // Convert target account to a byte array
     var target=document.getElementById("xferTo").value;
-    var targetBytes=rora.bytesFromHex(target);
+    var targetBytes=roradora.bytesFromHex(target);
     if (!targetBytes || targetBytes.length!=32) { alert("Invalid target account '"+target+"'"); return; }
     
     // Convert amount to a byte array
@@ -120,17 +120,17 @@ function xferUI()
     if (amount<0) { alert("Cannot send a negative amount!"); return; }
     var amountTot=amount*100.0; // convert to pennies
     var amountHex=amountTot.toString(16).padStart(64,'0'); // hex, leading zeros
-    var amountBytes=rora.bytesFromHex(amountHex);
+    var amountBytes=roradora.bytesFromHex(amountHex);
     if (!amountBytes || amountBytes.length!=32) { alert("Invalid amount "+amountHex); return; }
     
     // Use our private key to sign outgoing transfer request
-    var signature=roradora.signXfer(targetBytes,amountBytes);
+    var signature=rorahtml.signXfer(targetBytes,amountBytes);
     
-    roradora.network("xfer",
-            "pubkey="+roradora.pubhex+
-            "&to="+rora.hexFromBytes(targetBytes)+
-            "&amount="+rora.hexFromBytes(amountBytes)+
-            "&signature="+rora.hexFromBytes(signature),
+    rorahtml.network("xfer",
+            "pubkey="+rorahtml.pubhex+
+            "&to="+roradora.hexFromBytes(targetBytes)+
+            "&amount="+roradora.hexFromBytes(amountBytes)+
+            "&signature="+roradora.hexFromBytes(signature),
         function(result)
         {
             document.getElementById("xferResult").innerHTML=result;
