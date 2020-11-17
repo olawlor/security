@@ -48,10 +48,16 @@ int main() {
 		printf("ERROR in scanf.  Exiting.\n"); exit(1);
 	}
 	printf("Loaded name %s (%zd bytes)\n", code->name, strlen(code->name));
-	
+	{
+		FILE *f=fopen("binary.bin","wb"); 
+		fwrite(code,sizeof(*code),1,f);
+		fclose(f);
+	}	
+
 	/* Run the code */
 	if (code->interp) {
 		printf("Seems to be an interpreter at %p: running it...\n",(void *)code->interp);
+		fflush(stdout); //<- write file
 		code->interp(code);
 		printf("Back from interpreter.\n");
 	} else {

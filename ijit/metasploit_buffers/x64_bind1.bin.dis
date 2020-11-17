@@ -1,0 +1,87 @@
+00000000  skipping 0x384 bytes
+00000384  9E                sahf
+00000385  99                cdq
+00000386  FD                std
+00000387  FC                cld
+00000388  F9                stc
+00000389  98                cwde
+0000038A  98                cwde
+0000038B  97                xchg eax,edi
+0000038C  92                xchg eax,edx
+0000038D  9E                sahf
+0000038E  96                xchg eax,esi
+0000038F  9B97              wait xchg eax,edi
+00000391  F8                clc
+00000392  90                nop
+00000393  92                xchg eax,edx
+00000394  97                xchg eax,edi
+00000395  92                xchg eax,edx
+00000396  F9                stc
+00000397  F9                stc
+00000398  FD                std
+00000399  93                xchg eax,ebx
+0000039A  FC                cld
+0000039B  97                xchg eax,edi
+0000039C  92                xchg eax,edx
+0000039D  98                cwde
+0000039E  97                xchg eax,edi
+0000039F  93                xchg eax,ebx
+000003A0  EB27              jmp short 0x3c9 ; Decoder begin
+000003A2  5B                pop rbx
+000003A3  53                push rbx
+000003A4  5F                pop rdi
+000003A5  B08F              mov al,0x8f
+000003A7  FC                cld
+000003A8  AE                scasb
+000003A9  75FD              jnz 0x3a8
+000003AB  57                push rdi
+000003AC  59                pop rcx
+000003AD  53                push rbx
+000003AE  5E                pop rsi
+000003AF  8A06              mov al,[rsi]
+000003B1  3007              xor [rdi],al
+000003B3  48FFC7            inc rdi
+000003B6  48FFC6            inc rsi
+000003B9  66813F32A4        cmp word [rdi],0xa432  ; EOF marker
+000003BE  7407              jz 0x3c7
+000003C0  803E8F            cmp byte [rsi],0x8f
+000003C3  75EA              jnz 0x3af
+000003C5  EBE6              jmp short 0x3ad
+000003C7  FFE1              jmp rcx
+000003C9  E8D4FFFFFF        call 0x3a2
+000003CE  138F793A4B8A      adc ecx,[rdi-0x75b4c587] ; Data begin
+000003D4  7911              jns 0x3e7
+000003D6  4C7912            o64 jns 0x3eb
+000003D9  4D1C16            o64 sbb al,0x16
+000003DC  5B                pop rbx
+000003DD  8441D4            test [rcx-0x2c],al
+000003E0  17                db 0x17
+000003E1  37                db 0x37
+000003E2  1113              adc [rbx],edx
+000003E4  024F5B            add cl,[rdi+0x5b]
+000003E7  9A                db 0x9a
+000003E8  F5                cmc
+000003E9  7903              jns 0x3ee
+000003EB  497922            o64 jns 0x410
+000003EE  4B1C16            o64 sbb al,0x16
+000003F1  4A7921            o64 jns 0x415
+000003F4  4B1C16            o64 sbb al,0x16
+000003F7  5B                pop rbx
+000003F8  857938            test [rcx+0x38],edi
+000003FB  4B1C16            o64 sbb al,0x16
+000003FE  43                rex.xb
+000003FF  45                rex.rb
+00000400  4C791A            o64 jns 0x41d
+00000403  4B8AA5035B9AC5    o64 mov spl,[r13-0x3a65a4fd]
+0000040A  5E                pop rsi
+0000040B  22DA              and bl,dl
+0000040D  7931              jns 0x440
+0000040F  52                push rdx
+00000410  49A1141C165B855B  mov rax,[qword 0x4c845b855b161c14]
+         -844C
+0000041A  1C16              sbb al,0x16
+0000041C  EC                in al,dx
+0000041D  F5                cmc
+0000041E  32A440C0AD3B00    xor ah,[rax+rax*2+0x3badc0]
+00000425  0000              add [rax],al
+00000427  00                db 0x00
