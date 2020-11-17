@@ -9,8 +9,8 @@ msfconsole hang at startup when it sees the executable git hooks!)
 ```
 cd
 git clone https://github.com/olawlor/security
-mkdir -p ~/.msf4/modules/exploits/linux/ijit
-cd ~/.msf4/modules/exploits/linux/ijit
+mkdir -p ~/.msf4/modules/exploits/linux
+cd ~/.msf4/modules/exploits/linux
 ln -s ~/security/ijit/ijit.rb .
 ```
 
@@ -29,7 +29,7 @@ In another terminal, exploit it with msfconsole:
 
 ```
 msfconsole
-use exploit/linux/ijit/ijit 
+use exploit/linux/ijit
 reload
 set RHOST 127.0.0.1
 set nop x86/single_byte
