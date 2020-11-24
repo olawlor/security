@@ -14,6 +14,13 @@ bake: bake_gadgets.cpp
 run: bake smashy
 	cat rop_chain | strace ./smashy
 
+dis: libc.so
+	objdump -dr libc.so > dis
+
+find_gadgets: dis
+	grep -C 3 execve dis > gadget_exec
+	grep "pop" dis | grep "pc" | grep "r0" > gadget_pop
+
 clean:
 	rm smashy
 
